@@ -65,12 +65,16 @@ const AddUserForm: React.FC = () => {
       setValidationErrors(null);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const errorResponse = error.response?.data as {
-          message: string;
-          errors?: { [key: string]: string[] };
-        };
+        const errorResponse = error.response?.data;
 
-        setValidationErrors(errorResponse.errors || null);
+        if (errorResponse && errorResponse.errors) {
+          setValidationErrors(errorResponse.errors);
+        } else {
+          setValidationErrors(null);
+          console.error(errorResponse?.message || error.message);
+        }
+      } else {
+        console.error(error);
       }
     }
   };
@@ -112,7 +116,11 @@ const AddUserForm: React.FC = () => {
         <div>
           <label>
             Position:
-            <select name="positionId" value={formData.positionId} onChange={handleInputChange}>
+            <select
+              name="positionId"
+              value={formData.positionId || ""}
+              onChange={handleInputChange}
+            >
               <option value="" disabled>
                 Select position
               </option>

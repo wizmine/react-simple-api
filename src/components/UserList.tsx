@@ -6,15 +6,22 @@ const UserList: React.FC = () => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [offset, setOffset] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
-    const response = await axios.get(`http://localhost:8000/api/users?offset=${offset}&limit=6`);
-    const newUsers = response.data;
+    try {
+      const response = await axios.get(`http://localhost:8000/api/users?offset=${offset}&limit=6`);
+      const newUsers = response.data;
 
-    setUsers((prevUsers) => [...prevUsers, ...newUsers]);
+      setUsers((prevUsers) => [...prevUsers, ...newUsers]);
 
-    if (newUsers.length < 6) {
-      setHasMore(false);
+      if (newUsers.length < 6) {
+        setHasMore(false);
+      }
+
+      setError(null);
+    } catch (err) {
+      setError("Have lost connection with a server.");
     }
   }, [offset]);
 
@@ -28,8 +35,9 @@ const UserList: React.FC = () => {
 
   return (
     <div>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <ul>
-        {users.map((user) => (
+        {users?.map((user) => (
           <li key={user.id}>
             <img src={user.photo} alt={user.name} />
             <p>Name: {user.name}</p>
@@ -39,7 +47,7 @@ const UserList: React.FC = () => {
           </li>
         ))}
       </ul>
-      {hasMore && <button onClick={handleShowMore}>Show more</button>}
+      {hasMore && !error && <button onClick={handleShowMore}>Show more</button>}{" "}
     </div>
   );
 };
